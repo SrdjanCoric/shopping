@@ -1,16 +1,15 @@
-import React, { useState } from "react";
-import { BaseProduct } from "../types/types";
+import React, { useContext, useState } from "react";
+import { ProductDispatchContext } from "../context/product-context";
+import apiClient from "../lib/ApiClient";
 import ProductForm from "./ProductForm";
 
-type Props = {
-  onAddProduct: (value: BaseProduct, callback: () => void)=> void
-}
-
-const AddProductForm = ({onAddProduct}: Props) => {
+const AddProductForm = () => {
   const [title, setTitle] = useState<string>("");
   const [price, setPrice] = useState<number>(0);
   const [quantity, setQuantity] = useState<number>(0);
   const [visible, setVisible] = useState(false);
+
+  const {addProduct} = useContext(ProductDispatchContext)
 
   const handleToggleAddForm = () => {
     setVisible(!visible);
@@ -25,14 +24,13 @@ const AddProductForm = ({onAddProduct}: Props) => {
       quantity,
     };
 
-    onAddProduct(product, handleProductAdded);
+    apiClient.addProduct(product, (newProduct) => {
+      addProduct(newProduct);
+      handleToggleAddForm();
+      resetState();
+    })
 
   };
-
-  const handleProductAdded = () => {
-    handleToggleAddForm();
-    resetState();
-  }
 
   const handleInputChange = (e: React.SyntheticEvent) => {
     const target = e.target as HTMLTextAreaElement;

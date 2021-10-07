@@ -1,22 +1,40 @@
-import { useState } from "react";
-import { BaseProduct, Cart, Product } from "../types/types";
+import { useContext, useState } from "react";
+import { CartDispatchContext } from "../context/cart-context";
+import { ProductDispatchContext } from "../context/product-context";
+import apiClient from "../lib/ApiClient";
+import { Product } from "../types/types";
 import EditProductForm from "./EditProductForm";
 
 type Props = {
   product: Product,
-  onAddToCart: (value: string) => void,
-  onDeleteProduct: (value: string) => void,
-  onUpdateProduct: (value: BaseProduct, id:string, callback?: (value: Cart) => void) => void
 }
 
 const EditableProduct = (props: Props) => {
-  const [editable, setEditable] = useState(false);
-  const { product, onUpdateProduct, onAddToCart, onDeleteProduct } = props;
+  const [editable, setEditable] = useState<boolean>(false);
+  const { product} = props;
+  const {addProductToCart, deleteProduct} = useContext(ProductDispatchContext)
+  const {addItemToCart} = useContext(CartDispatchContext)
   const isZeroQuantity = product.quantity === 0;
 
   const handleToggleEdit = () => {
     setEditable(!editable);
   };
+
+  const handleAddToCart = () => {
+    if (product.quantity === 0) {
+      return;
+    }
+    apiClient.addToCart(product._id, {...product, quantity: product.quantity - 1}, cartItem => {
+      addProductToCart(product._id);
+      addItemToCart(cartItem)
+    })
+  }
+
+  const handleDeletePRoduct = () => {
+    apiClient.deleteProduct(product._id, () => {
+      deleteProduct(product._id);
+    })
+  }
   return (
     <div className="product">
       <div className="product-details">
@@ -29,8 +47,6 @@ const EditableProduct = (props: Props) => {
           <EditProductForm
             product={product}
             onToggleEdit={handleToggleEdit}
-            onUpdateProduct={onUpdateProduct}
-            editable={editable}
           />
         ) : (
           <div className="actions product-actions">
@@ -40,7 +56,7 @@ const EditableProduct = (props: Props) => {
                   ? "button add-to-cart disabled"
                   : "button add-to-cart"
               }
-              onClick={() => onAddToCart(product._id)}
+              onClick={handleAddToCart}
             >
               Add to Cart
             </a>
@@ -52,7 +68,7 @@ const EditableProduct = (props: Props) => {
 
         <a
           className="delete-button"
-          onClick={() => onDeleteProduct(product._id)}
+          onClick={handleDeletePRoduct}
         >
           <span>X</span>
         </a>

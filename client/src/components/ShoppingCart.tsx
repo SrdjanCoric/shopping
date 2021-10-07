@@ -1,26 +1,38 @@
-import { MouseEvent } from "react";
-import { Cart } from "../types/types";
+import {useContext, useEffect } from "react";
+import { CartDispatchContext, CartStateContext } from "../context/cart-context";
+import apiClient from "../lib/ApiClient";
 import CartItem from "./CartItem";
 
-type Props = {
-  cart: Cart[],
-  onCheckout: (value: MouseEvent<HTMLAnchorElement>) => void
-}
 
-const ShoppingCart = (props: Props) => {
-  const cartItems = props.cart.map((item) => (
+const ShoppingCart = () => {
+
+  const {cart} = useContext(CartStateContext)
+  const {checkout, getCartItems} = useContext(CartDispatchContext)
+  const cartItems = cart.map((item) => (
     <CartItem key={item._id} {...item} />
   ));
 
+  const handleCheckout = () => {
+    apiClient.checkout(() => {
+      checkout()
+    })
+  }
+
+  useEffect(() => {
+    apiClient.getCartItems(cartItems => {
+      getCartItems(cartItems)
+    })
+  }, [getCartItems])
+
   const calculateTotal =
     Math.round(
-      props.cart.reduce((acc, item) => acc + item.price * item.quantity, 0) *
+      cart.reduce((acc, item) => acc + item.price * item.quantity, 0) *
         100
     ) / 100;
   return (
     <header>
       <h1>The Shop!</h1>
-      {props.cart.length === 0 ? (
+      {cart.length === 0 ? (
         <div className="cart">
           <h2>Your Cart</h2>
           <p>Your cart is empty</p>
@@ -48,7 +60,7 @@ const ShoppingCart = (props: Props) => {
               </tr>
             </tbody>
           </table>
-          <a className="button checkout" onClick={props.onCheckout}>
+          <a className="button checkout" onClick={handleCheckout}>
             Checkout
           </a>
         </div>

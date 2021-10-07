@@ -1,18 +1,20 @@
-import React, { useState } from "react";
-import { BaseProduct, Product } from "../types/types";
+import React, { useState, useContext } from "react";
+import { ProductDispatchContext } from "../context/product-context";
+import apiClient from "../lib/ApiClient";
+import {Product } from "../types/types";
 import ProductForm from "./ProductForm";
 
 type Props = {
   product: Product,
   onToggleEdit: () => void,
-  onUpdateProduct: (value: BaseProduct, id: string) => void,
-  editable:boolean
 }
 
-const EditProductForm = (props: Props) => {
-  const [title, setTitle] = useState<string>(props.product.title || "");
-  const [price, setPrice] = useState<number>(props.product.price || 0);
-  const [quantity, setQuantity] = useState<number>(props.product.quantity || 0);
+const EditProductForm = ({product, onToggleEdit}: Props) => {
+  const [title, setTitle] = useState<string>(product.title || "");
+  const [price, setPrice] = useState<number>(product.price || 0);
+  const [quantity, setQuantity] = useState<number>(product.quantity || 0);
+
+  const {updateProduct} = useContext(ProductDispatchContext);
 
   const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -21,8 +23,10 @@ const EditProductForm = (props: Props) => {
       price,
       quantity,
     };
-    props.onUpdateProduct(editedProduct, props.product._id);
-    props.onToggleEdit();
+    apiClient.updateProduct(product._id, editedProduct, updatedProduct => {
+      updateProduct(updatedProduct)
+      onToggleEdit()
+    })
   };
 
   const handleInputChange = (e: React.SyntheticEvent) => {
@@ -43,10 +47,10 @@ const EditProductForm = (props: Props) => {
   };
 
   const handleCancelClick = () => {
-    setTitle(props.product.title);
-    setPrice(props.product.price);
-    setQuantity(props.product.quantity);
-    props.onToggleEdit();
+    setTitle(product.title);
+    setPrice(product.price);
+    setQuantity(product.quantity);
+    onToggleEdit();
   };
 
   return (

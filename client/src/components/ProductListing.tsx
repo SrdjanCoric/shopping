@@ -1,27 +1,29 @@
-import { BaseProduct, Product, Cart } from "../types/types";
+import { useContext, useEffect } from "react";
+import { ProductDispatchContext, ProductStateContext } from "../context/product-context";
+import apiClient from "../lib/ApiClient";
+import { Product } from "../types/types";
 import EditableProduct from "./EditableProduct";
 
-type Props = {
-  products: Product[],
-  onAddToCart:(value: string) => void,
-  onDeleteProduct: (value: string) => void,
-  onUpdateProduct: (value: BaseProduct, id:string, callback?: (value: Cart) => void) => void
-}
-
-const ProductListing = (props: Props) => {
-  const products = props.products.map((product) => (
+const ProductListing = () => {
+  const {products} = useContext(ProductStateContext)
+  const {getProducts} = useContext(ProductDispatchContext)
+  const productComponents = products.map((product: Product) => (
     <EditableProduct
       key={product._id}
       product={product}
-      onAddToCart={props.onAddToCart}
-      onDeleteProduct={props.onDeleteProduct}
-      onUpdateProduct={props.onUpdateProduct}
     />
   ));
+
+  useEffect(() => {
+    apiClient.getProducts(products => {
+      getProducts(products)
+    })
+
+  }, [getProducts])
   return (
     <div className="product-listing">
       <h2>Products</h2>
-      {products}
+      {productComponents}
     </div>
   );
 };
