@@ -1,108 +1,86 @@
-import React from "react";
-import { render, fireEvent } from "@testing-library/react";
-import { within, getNodeText, prettyDOM } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+
+import userEvent from "@testing-library/user-event";
+
 import AddProductForm from "../components/AddProductForm";
 
 describe("AddProductForm", () => {
-  let component;
-  let func;
+
+  let func : jest.Mock;
   describe("empty form inputs", () => {
-    func = jest.fn();
     beforeEach(() => {
-      component = render(<AddProductForm onAddProduct={func} />);
+    func = jest.fn();
+    render(<AddProductForm onAddProduct={func} />);
     });
 
     it("has title input", () => {
       expect(
-        component.container.querySelector('[name="title"]')
+        screen.getByRole("textbox", { name: "Product Name" })
       ).toBeInTheDocument();
     });
 
     it("has price input", () => {
       expect(
-        component.container.querySelector('[name="price"]')
+        screen.getByRole("textbox", { name: "Price" })
       ).toBeInTheDocument();
     });
 
     it("has quantity input", () => {
       expect(
-        component.container.querySelector('[name="quantity"]')
+        screen.getByRole("textbox", { name: "Quantity" })
       ).toBeInTheDocument();
     });
 
     describe("then fill in inputs", () => {
-      const title = "Fancy Gentlemans Jacket";
-      const price = "150.00";
+      const title = "Kindle";
+      const price = "150";
       const quantity = "2";
 
       it("state reflects `onChange` for `title` input", () => {
-        let input = component.container.querySelector('[name="title"]');
-        fireEvent.change(input, {
-          target: {
-            name: "title",
-            value: "Fancy Gentlemans Jacket",
-          },
-        });
+        let titleInput = screen.getByRole("textbox", { name: "Product Name" });
+        userEvent.type(titleInput, "Kindle")
 
-        expect(input.value).toEqual(title);
+        expect(titleInput).toHaveValue(title);
       });
 
       it("state reflects `onChange` for `price` input", () => {
-        let input = component.container.querySelector('[name="price"]');
-        fireEvent.change(input, {
-          target: {
-            name: "price",
-            value: "150.00",
-          },
-        });
+        let priceInput = screen.getByRole("textbox", { name: "Price" });
+        userEvent.type(priceInput, "150")
 
-        expect(input.value).toEqual(price);
+        expect(priceInput).toHaveValue(price);
       });
 
       it("state reflects `onChange` for `quantity` input", () => {
-        let input = component.container.querySelector('[name="quantity"]');
-        fireEvent.change(input, {
-          target: {
-            name: "quantity",
-            value: "2",
-          },
-        });
+        let quantityInput = screen.getByRole("textbox", { name: "Quantity" });
+        userEvent.type(quantityInput, "2")
 
-        expect(input.value).toEqual(quantity);
+        expect(quantityInput).toHaveValue(quantity);
       });
 
       describe("then submit form", () => {
         it("`onAddProduct` is called", () => {
-          let button = component.getByTestId("submit");
-          fireEvent.click(button, { preventDefault: () => {} });
+          const button = screen.getByRole("link", {name: "Add"});
+          userEvent.click(button)
           expect(func.mock.calls.length).toBe(1);
         });
 
         it("`onAddProduct` is passed new product", () => {
-          let button = component.getByTestId("submit");
-          fireEvent.click(button, { preventDefault: () => {} });
-          const product = {
-            title: component.container.querySelector("[name='title']").value,
-            price: component.container.querySelector("[name='price']").value,
-            quantity: component.container.querySelector("[name='quantity']")
-              .value,
-          };
-          expect(func.mock.calls[0][0]).toEqual(product);
-        });
+          const button = screen.getByRole("link", {name: "Add"});
+          let titleInput = screen.getByRole("textbox", { name: "Product Name" });
+          userEvent.type(titleInput, "Kindle");
+          let priceInput = screen.getByRole("textbox", { name: "Price" });
+          userEvent.type(priceInput, "150");
+          let quantityInput = screen.getByRole("textbox", { name: "Quantity" });
+          userEvent.type(quantityInput, "2");
 
-        it("state is emptied", () => {
-          const fields = { title: "", price: "", quantity: "" };
-          let button = component.getByTestId("submit");
-          fireEvent.click(button, {
-            preventDefault: () => {},
-          });
-          const product = {
-            title: component.container.querySelector("[name='title']").value,
-            price: component.container.querySelector("[name='price']").value,
-            quantity: component.container.querySelector("[name='quantity']")
-              .value,
-          };
-          expect(product).toEqual(fields);
+          const newProduct = {
+            title,
+            price: +price,
+            quantity: +quantity
+          }
+          userEvent.click(button)
+
+          expect(func.mock.calls[0][0]).toEqual(newProduct);
         });
       });
     });

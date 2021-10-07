@@ -30,7 +30,7 @@ const ShoppingCart = (props: Props) => {
       ) : (
         <div className="cart">
           <h2>Your Cart</h2>
-          <table className="cart-items">
+          <table className="cart-items" data-testid="table">
             <thead>
               <tr>
                 <th>Item</th>
