@@ -10,11 +10,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 mongoose
-  .connect(process.env.DB, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useFindAndModify: false,
-  })
+  .connect("mongodb://206.81.23.37:27017/shopping")
   .then(() => console.log(`Database connected successfully`))
   .catch((err) => console.log(err));
 
